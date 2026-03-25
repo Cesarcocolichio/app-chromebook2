@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>📤 Separar Pedido</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { text-align: center; background: #111; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
+    #reader { width: 100%; max-width: 500px; margin: 20px auto; border-radius: 8px; display: none; }
+    button { font-size: 18px; padding: 12px 20px; margin: 10px; cursor: pointer; border-radius: 5px; border: none; min-width: 150px; }
+    .btn-voltar { background: #444; color: white; }
+    .btn-iniciar { background: #2e7d32; color: white; }
+    .btn-finalizar { background: #f57c00; color: white; display: none; margin-top: 20px; }
+    input { padding: 12px; font-size: 16px; border-radius: 5px; border: 1px solid #444; width: 80%; max-width: 300px; background: #222; color: white; margin-bottom: 15px; }
+    .status-box { margin: 15px; padding: 10px; border: 1px dashed #555; display: none; }
+  </style>
+</head>
+<body>
+
+  <h1>📤 Separar Pedido</h1>
+  
+  <div id="setup-container">
+    <p>Digite o ID do Pedido (P001...):</p>
+    <input type="text" id="idPedidoInput" placeholder="Ex: P001">
+    <br>
+    <button class="btn-voltar" onclick="voltar()">⬅ Voltar</button>
+    <button class="btn-iniciar" onclick="iniciarSeparacao()">Bipar Itens</button>
+  </div>
+
+  <div id="status-container" class="status-box">
+    <strong id="pedidoAtivo"></strong><br>
+    <span id="feedback">Aguardando leitura...</span>
+    <br>
+    <button id="btnFinalizar" class="btn-finalizar" onclick="finalizar()">✅ Finalizar Entrega</button>
+  </div>
+
+  <div id="reader"></div>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script>
+    let idPedidoAtual = "";
+    const scanner = new Html5Qrcode("reader");
+    const BASE_URL = "https://script.google.com/macros/s/AKfycbz967e-L2uiRRXE8E7XyGrQih1K3MFEQ5WNUzVIrNwCrn7QzYGcFHWYVSZ6KPwyd6gF/exec";
+
+    function voltar() { window.location.href = "index.html"; }
+
+    function iniciarSeparacao() {
+      idPedidoAtual = document.getElementById('idPedidoInput').value.trim().toUpperCase();
+      if (!idPedidoAtual) return alert("Informe o ID.");
+
+      document.getElementById('setup-container').style.display = 'none';
+      document.getElementById('status-container').style.display = 'block';
+      document.getElementById('pedidoAtivo').innerText = "Pedido: " + idPedidoAtual;
+      document.getElementById('btnFinalizar').style.display = 'inline-block';
+      document.getElementById('reader').style.display = 'block';
+
+      startScanner();
+    }
+
+    function startScanner() {
+      scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, qrCodeMessage => {
+        scanner.pause();
+        const url = `${BASE_URL}?id=${qrCodeMessage}&idPedido=${idPedidoAtual}&acao=reservar`;
+        
+        fetch(url).then(res => res.text()).then(msg => {
+          document.getElementById('feedback').innerText = "Último: " + msg;
+          scanner.resume();
+        });
+      });
+    }
+
+    function finalizar() {
+      if (!confirm("Confirmar entrega de todos os itens reservados?")) return;
+      
+      const url = `${BASE_URL}?idPedido=${idPedidoAtual}&acao=finalizar&id=N_A`; // id=N_A apenas para não dar erro de parâmetro
+      
+      fetch(url).then(res => res.text()).then(msg => {
+        alert(msg);
+        window.location.href = "index.html";
+      });
+    }
+  </script>
+</body>
+</html>
