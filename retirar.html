@@ -2,96 +2,130 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>📤 Separar Pedido</title>
+  <title>📤 Separar Pedido - Cards</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { text-align: center; background: #111; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
+    
+    /* Estilo dos Cards */
+    .container-cards { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 20px; }
+    .card { 
+      background: #222; border: 1px solid #444; padding: 20px; width: 90%; max-width: 450px; 
+      border-radius: 12px; cursor: pointer; text-align: left; transition: 0.3s; position: relative;
+    }
+    .card:hover { border-color: #2e7d32; transform: translateY(-2px); background: #2a2a2a; }
+    .card h3 { margin: 0 0 8px 0; color: #4caf50; display: flex; justify-content: space-between; }
+    .card p { margin: 4px 0; font-size: 14px; color: #bbb; }
+    .badge { background: #2e7d32; color: white; padding: 4px 8px; border-radius: 5px; font-size: 12px; }
+    
+    /* Scanner e Feedback */
     #reader { width: 100%; max-width: 500px; margin: 20px auto; border-radius: 8px; display: none; }
-    button { font-size: 18px; padding: 12px 20px; margin: 10px; cursor: pointer; border-radius: 5px; border: none; min-width: 150px; }
-    .btn-voltar { background: #444; color: white; }
-    .btn-iniciar { background: #2e7d32; color: white; }
-    .btn-finalizar { background: #f57c00; color: white; display: none; margin-top: 20px; }
-    input { padding: 12px; font-size: 16px; border-radius: 5px; border: 1px solid #444; width: 80%; max-width: 300px; background: #222; color: white; margin-bottom: 15px; }
-    .status-box { margin: 15px; padding: 10px; border: 1px dashed #555; display: none; }
+    .status-box { background: #1a1a1a; padding: 20px; border-radius: 10px; border: 1px solid #333; display: none; margin-bottom: 20px; }
+    .btn-voltar { background: #444; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    .btn-finalizar { background: #f57c00; color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; margin-top: 20px; }
+    
+    #loading { margin: 50px; font-style: italic; color: #888; }
   </style>
 </head>
 <body>
 
-  <h1>📤 Separar Pedido</h1>
+  <h1>📤 Pedidos Pendentes</h1>
   
-  <div id="setup-container">
-    <p>Digite o ID do Pedido (P001...):</p>
-    <input type="text" id="idPedidoInput" placeholder="Ex: P001">
-    <br>
-    <button class="btn-voltar" onclick="voltar()">⬅ Voltar</button>
-    <button class="btn-iniciar" onclick="iniciarSeparacao()">Bipar Itens</button>
+  <div id="view-lista">
+    <button class="btn-voltar" onclick="window.location.href='index.html'">⬅ Voltar</button>
+    <div id="loading">Buscando pedidos na planilha...</div>
+    <div id="container-pedidos" class="container-cards"></div>
   </div>
 
-  <div id="status-container" class="status-box">
-    <strong id="pedidoAtivo"></strong><br>
-    <span id="feedback">Aguardando leitura...</span>
-    <br>
-    <button id="btnFinalizar" class="btn-finalizar" onclick="finalizar()">✅ Finalizar Entrega</button>
+  <div id="view-scanner" style="display: none;">
+    <div class="status-box" id="status-container" style="display: block;">
+      <h2 id="profAtivo" style="color: #4caf50; margin: 0;"></h2>
+      <p id="pedidoID" style="color: #888;"></p>
+      <div id="feedback" style="font-size: 1.2em; margin: 15px 0; min-height: 1.5em;">Aguardando leitura do QR Code...</div>
+      <button class="btn-voltar" onclick="fecharScanner()">⬅ Mudar Pedido</button>
+      <button class="btn-finalizar" onclick="finalizar()">✅ Finalizar Entrega</button>
+    </div>
+    <div id="reader"></div>
   </div>
-
-  <div id="reader"></div>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
+    const BASE_URL = "https://script.google.com/macros/s/AKfycbwy2JvVfE1vZ_Tp2LAEfsSoOlgzgCCCKotsVTUOWY6CFPloFrgvt_mpQ8VVQoeqN0QF/exec";
     let idPedidoAtual = "";
     const scanner = new Html5Qrcode("reader");
-    
-    // AQUI ESTÁ A MUDANÇA: Usando o link que deu certo no seu teste!
-    const BASE_URL = "https://script.google.com/macros/s/AKfycbwy2JvVfE1vZ_Tp2LAEfsSoOlgzgCCCKotsVTUOWY6CFPloFrgvt_mpQ8VVQoeqN0QF/exec";
 
-    function voltar() { window.location.href = "index.html"; }
+    // Carregar pedidos ao abrir a página
+    window.onload = carregarPedidos;
 
-    function iniciarSeparacao() {
-      idPedidoAtual = document.getElementById('idPedidoInput').value.trim().toUpperCase();
-      if (!idPedidoAtual) return alert("Informe o ID.");
+    function carregarPedidos() {
+      fetch(`${BASE_URL}?acao=listar_pedidos`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('loading').style.display = 'none';
+          const container = document.getElementById('container-pedidos');
+          container.innerHTML = "";
 
-      document.getElementById('setup-container').style.display = 'none';
-      document.getElementById('status-container').style.display = 'block';
-      document.getElementById('pedidoAtivo').innerText = "Pedido: " + idPedidoAtual;
-      document.getElementById('btnFinalizar').style.display = 'inline-block';
-      document.getElementById('reader').style.display = 'block';
+          if (data.length === 0) {
+            container.innerHTML = "<p>Nenhum pedido pendente encontrado.</p>";
+            return;
+          }
 
-      startScanner();
+          data.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            // Se já tiver algo bipado, o card ganha uma borda sutil
+            if (p.bipados) card.style.borderLeft = "5px solid #2e7d32";
+
+            card.innerHTML = `
+              <h3>${p.professor} <span class="badge">${p.id}</span></h3>
+              <p><b>Quantidade:</b> ${p.quantidade} unidades</p>
+              <p><b>Data/Hora:</b> ${p.horarioPedido}</p>
+              ${p.bipados ? `<p style="color: #4caf50;"><b>Já bipados:</b> ${p.bipados}</p>` : ''}
+            `;
+            card.onclick = () => iniciarScan(p.id, p.professor);
+            container.appendChild(card);
+          });
+        })
+        .catch(err => {
+          document.getElementById('loading').innerText = "Erro ao carregar pedidos. Verifique a conexão.";
+        });
     }
 
-    function startScanner() {
-      // Configuração de scanner mais estável
-      const config = { fps: 10, qrbox: 250 };
+    function iniciarScan(id, professor) {
+      idPedidoAtual = id;
+      document.getElementById('view-lista').style.display = 'none';
+      document.getElementById('view-scanner').style.display = 'block';
+      document.getElementById('reader').style.display = 'block';
+      document.getElementById('profAtivo').innerText = "Prof. " + professor;
+      document.getElementById('pedidoID').innerText = "ID: " + id;
       
+      const config = { fps: 10, qrbox: 250 };
       scanner.start({ facingMode: "environment" }, config, qrCodeMessage => {
         scanner.pause();
-        
-        // Monta a URL exatamente como o link de teste que deu certo
         const url = `${BASE_URL}?id=${qrCodeMessage.trim()}&idPedido=${idPedidoAtual}&acao=reservar`;
         
         fetch(url)
           .then(res => res.text())
           .then(msg => {
-            document.getElementById('feedback').innerText = "Resultado: " + msg;
-            // Se der erro, o alert ajuda a ver o que houve na hora
+            document.getElementById('feedback').innerText = msg;
             if (msg.toLowerCase().includes("erro")) alert(msg);
-            scanner.resume();
-          })
-          .catch(err => {
-            alert("Erro na conexão: " + err);
-            scanner.resume();
+            setTimeout(() => { scanner.resume(); }, 1000);
           });
       });
     }
 
+    function fecharScanner() {
+      scanner.stop().then(() => {
+        location.reload(); // Recarrega para atualizar a lista
+      });
+    }
+
     function finalizar() {
-      if (!confirm("Confirmar entrega de todos os itens reservados para o pedido " + idPedidoAtual + "?")) return;
-      
+      if (!confirm("Confirmar a entrega final para este professor?")) return;
       const url = `${BASE_URL}?idPedido=${idPedidoAtual}&acao=finalizar`;
-      
       fetch(url).then(res => res.text()).then(msg => {
         alert(msg);
-        window.location.href = "index.html";
+        location.reload();
       });
     }
   </script>
