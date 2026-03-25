@@ -404,11 +404,13 @@ itensBipados.length+" / "+qtdSolicitada;
 
 function fecharScanner(){
 
-scanner.stop().catch(()=>{});
+  try{
+    scanner.stop();
+  }catch(e){}
 
-location.reload();
+  navigator.sendBeacon(BASE_URL + "?acao=cancelar_reservas");
 
-fetch(`${BASE_URL}?acao=cancelar_reservas`).catch(()=>{});
+  location.reload();
 
 }
 
