@@ -7,158 +7,169 @@
   <style>
     body { text-align: center; background: #111; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
     
-    /* Estilo dos Cards */
     .container-cards { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 20px; }
     .card { 
       background: #222; border: 1px solid #444; padding: 20px; width: 90%; max-width: 450px; 
-      border-radius: 12px; cursor: pointer; text-align: left; transition: 0.3s; position: relative;
+      border-radius: 12px; cursor: pointer; text-align: left; transition: 0.3s;
     }
     .card:hover { border-color: #2e7d32; transform: translateY(-2px); background: #2a2a2a; }
     .card h3 { margin: 0 0 8px 0; color: #4caf50; display: flex; justify-content: space-between; }
     .card p { margin: 4px 0; font-size: 14px; color: #bbb; }
-    .badge { background: #2e7d32; color: white; padding: 4px 8px; border-radius: 5px; font-size: 12px; }
-    
-    /* Scanner e Feedback */
-    #reader { width: 100%; max-width: 500px; margin: 20px auto; border-radius: 8px; display: none; }
+    .badge { background: #2e7d32; padding: 4px 8px; border-radius: 5px; font-size: 12px; }
+
+    #reader { width: 100%; max-width: 500px; margin: 20px auto; display: none; }
     .status-box { background: #1a1a1a; padding: 20px; border-radius: 10px; border: 1px solid #333; display: none; margin-bottom: 20px; }
-    .btn-voltar { background: #444; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin: 5px; }
-    .btn-finalizar { background: #f57c00; color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; margin-top: 20px; display: none; }
-    
-    #loading { margin: 50px; font-style: italic; color: #888; }
+
+    .btn-voltar, .btn-finalizar {
+      padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; margin: 5px;
+    }
+    .btn-voltar { background: #444; color: white; }
+    .btn-finalizar { background: #f57c00; color: white; display: none; }
+
     #contagem { color: #4caf50; font-weight: bold; font-size: 18px; margin-top: 10px; display: block; }
   </style>
 </head>
 <body>
 
-  <h1>📤 Pedidos Pendentes</h1>
-  
-  <div id="view-lista">
-    <button class="btn-voltar" onclick="window.location.href='index.html'">⬅ Voltar</button>
-    <div id="loading">Buscando pedidos na planilha...</div>
-    <div id="container-pedidos" class="container-cards"></div>
+<h1>📤 Pedidos Pendentes</h1>
+
+<div id="view-lista">
+  <button class="btn-voltar" onclick="window.location.href='index.html'">⬅ Voltar</button>
+  <div id="loading">Buscando pedidos...</div>
+  <div id="container-pedidos" class="container-cards"></div>
+</div>
+
+<div id="view-scanner" style="display:none;">
+  <div class="status-box" id="status-container" style="display:block;">
+    <h2 id="profAtivo"></h2>
+    <p id="pedidoID"></p>
+    <div id="feedback">Aguardando leitura...</div>
+    <span id="contagem"></span>
+
+    <button class="btn-voltar" onclick="fecharScanner()">⬅ Voltar</button>
+    <button class="btn-finalizar" id="btnFinalizar" onclick="finalizar()">Finalizar</button>
   </div>
 
-  <div id="view-scanner" style="display: none;">
-    <div class="status-box" id="status-container" style="display: block;">
-      <h2 id="profAtivo" style="color: #4caf50; margin: 0;"></h2>
-      <p id="pedidoID" style="color: #888;"></p>
-      <div id="feedback" style="font-size: 1.2em; margin: 15px 0; min-height: 1.5em;">Aguardando leitura do QR Code...</div>
-      <span id="contagem"></span>
-      <br>
-      <button class="btn-voltar" onclick="fecharScanner()">⬅ Mudar Pedido</button>
-      <button class="btn-finalizar" id="btnFinalizar" onclick="finalizar()">✅ Finalizar Entrega</button>
-    </div>
-    <div id="reader"></div>
-  </div>
+  <div id="reader"></div>
+</div>
 
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <script>
-    const BASE_URL = "https://script.google.com/macros/s/AKfycbwy2JvVfE1vZ_Tp2LAEfsSoOlgzgCCCKotsVTUOWY6CFPloFrgvt_mpQ8VVQoeqN0QF/exec";
-    let idPedidoAtual = "";
-    let itensBipados = []; // AQUI ESTÁ A MÁGICA: A lista que guarda os bips temporariamente
-    const scanner = new Html5Qrcode("reader");
+<script src="https://unpkg.com/html5-qrcode"></script>
 
-    window.onload = carregarPedidos;
+<script>
+const BASE_URL = "SUA_URL_AQUI";
 
-    function carregarPedidos() {
-      fetch(`${BASE_URL}?acao=listar_pedidos`)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('loading').style.display = 'none';
-          const container = document.getElementById('container-pedidos');
-          container.innerHTML = "";
+let idPedidoAtual = "";
+let itensBipados = [];
+let quantidadeMaxima = 0;
 
-          if (data.length === 0) {
-            container.innerHTML = "<p>Nenhum pedido pendente encontrado.</p>";
-            return;
+const scanner = new Html5Qrcode("reader");
+
+window.onload = carregarPedidos;
+
+function carregarPedidos() {
+  fetch(`${BASE_URL}?acao=listar_pedidos`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('loading').style.display = 'none';
+      const container = document.getElementById('container-pedidos');
+      container.innerHTML = "";
+
+      data.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        card.innerHTML = `
+          <h3>${p.professor} <span class="badge">${p.id}</span></h3>
+          <p>Quantidade: ${p.quantidade}</p>
+        `;
+
+        card.onclick = () => iniciarScan(p.id, p.professor, p.quantidade);
+        container.appendChild(card);
+      });
+    });
+}
+
+function iniciarScan(id, professor, quantidade) {
+  idPedidoAtual = id;
+  itensBipados = [];
+  quantidadeMaxima = quantidade;
+
+  document.getElementById('view-lista').style.display = 'none';
+  document.getElementById('view-scanner').style.display = 'block';
+  document.getElementById('reader').style.display = 'block';
+
+  document.getElementById('profAtivo').innerText = professor;
+  document.getElementById('pedidoID').innerText = "ID: " + id;
+  document.getElementById('contagem').innerText = `0/${quantidadeMaxima}`;
+  document.getElementById('btnFinalizar').style.display = 'none';
+
+  scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, qrCodeMessage => {
+
+    // 🚫 BLOQUEIO DE LIMITE
+    if (itensBipados.length >= quantidadeMaxima) {
+      document.getElementById('feedback').innerText = "⚠️ Limite atingido!";
+      scanner.pause();
+      return;
+    }
+
+    const idLido = qrCodeMessage.trim();
+
+    // 🚫 DUPLICADO
+    if (itensBipados.includes(idLido)) return;
+
+    scanner.pause();
+
+    fetch(`${BASE_URL}?id=${idLido}&acao=verificar_item`)
+      .then(res => res.text())
+      .then(msg => {
+
+        if (msg.startsWith("OK:")) {
+
+          // 🚫 DUPLA PROTEÇÃO
+          if (itensBipados.length >= quantidadeMaxima) return;
+
+          itensBipados.push(idLido);
+
+          document.getElementById('feedback').innerText = "OK!";
+          document.getElementById('contagem').innerText =
+            `${itensBipados.length}/${quantidadeMaxima}`;
+
+          document.getElementById('btnFinalizar').style.display = 'inline-block';
+
+          // 🔥 AUTO BLOQUEIO FINAL
+          if (itensBipados.length === quantidadeMaxima) {
+            document.getElementById('feedback').innerText = "✅ Completo!";
+            scanner.pause();
           }
 
-          data.forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            if (p.bipados) card.style.borderLeft = "5px solid #2e7d32";
+        } else {
+          alert(msg);
+        }
 
-            card.innerHTML = `
-              <h3>${p.professor} <span class="badge">${p.id}</span></h3>
-              <p><b>Quantidade:</b> ${p.quantidade} unidades</p>
-              <p><b>Data/Hora:</b> ${p.horarioPedido}</p>
-              ${p.bipados ? `<p style="color: #4caf50;"><b>Já bipados:</b> ${p.bipados}</p>` : ''}
-            `;
-            card.onclick = () => iniciarScan(p.id, p.professor);
-            container.appendChild(card);
-          });
-        })
-        .catch(err => {
-          document.getElementById('loading').innerText = "Erro ao carregar pedidos. Verifique a conexão.";
-        });
-    }
-
-    function iniciarScan(id, professor) {
-      idPedidoAtual = id;
-      itensBipados = []; // Limpa a lista sempre que abre um novo pedido
-      
-      document.getElementById('view-lista').style.display = 'none';
-      document.getElementById('view-scanner').style.display = 'block';
-      document.getElementById('reader').style.display = 'block';
-      document.getElementById('profAtivo').innerText = "Prof. " + professor;
-      document.getElementById('pedidoID').innerText = "ID: " + id;
-      document.getElementById('contagem').innerText = "";
-      document.getElementById('btnFinalizar').style.display = 'none';
-      
-      const config = { fps: 10, qrbox: 250 };
-      scanner.start({ facingMode: "environment" }, config, qrCodeMessage => {
-        const idLido = qrCodeMessage.trim();
-        
-        // Evita bipar o mesmo aparelho duas vezes
-        if (itensBipados.includes(idLido)) return;
-        
-        scanner.pause();
-        
-        // MUDANÇA: Usa a rota verificar_item (não altera a planilha ainda)
-        const url = `${BASE_URL}?id=${idLido}&acao=verificar_item`;
-        
-        fetch(url)
-          .then(res => res.text())
-          .then(msg => {
-            if (msg.startsWith("OK:")) {
-              itensBipados.push(idLido);
-              document.getElementById('feedback').innerText = "✅ " + msg.split(":")[1] + " separado!";
-              document.getElementById('contagem').innerText = "Chromebooks lidos: " + itensBipados.length;
-              document.getElementById('btnFinalizar').style.display = 'inline-block';
-            } else {
-              document.getElementById('feedback').innerText = "❌ Erro no item!";
-              alert(msg);
-            }
-            setTimeout(() => { scanner.resume(); }, 800);
-          })
-          .catch(err => {
-            alert("Erro na conexão: " + err);
-            scanner.resume();
-          });
+        setTimeout(() => scanner.resume(), 800);
       });
-    }
 
-    function fecharScanner() {
-      scanner.stop().then(() => {
-        location.reload(); 
-      });
-    }
+  });
+}
 
-    function finalizar() {
-      if (itensBipados.length === 0) {
-        return alert("Você precisa ler pelo menos um QR Code antes de finalizar!");
-      }
+function fecharScanner() {
+  scanner.stop().then(() => location.reload());
+}
 
-      if (!confirm("Confirmar a entrega de " + itensBipados.length + " itens para o professor?")) return;
-      
-      // MUDANÇA: Envia a lista toda de uma vez para vincular_em_massa
-      const url = `${BASE_URL}?idPedido=${idPedidoAtual}&listaIds=${itensBipados.join(",")}&acao=vincular_em_massa`;
-      
-      fetch(url).then(res => res.text()).then(msg => {
-        alert(msg);
-        location.reload();
-      });
-    }
-  </script>
+function finalizar() {
+  if (itensBipados.length === 0) {
+    alert("Leia pelo menos 1 item");
+    return;
+  }
+
+  fetch(`${BASE_URL}?idPedido=${idPedidoAtual}&listaIds=${itensBipados.join(",")}&acao=vincular_em_massa`)
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      location.reload();
+    });
+}
+</script>
+
 </body>
 </html>
