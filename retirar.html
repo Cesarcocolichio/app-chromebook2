@@ -21,10 +21,11 @@
     /* Scanner e Feedback */
     #reader { width: 100%; max-width: 500px; margin: 20px auto; border-radius: 8px; display: none; }
     .status-box { background: #1a1a1a; padding: 20px; border-radius: 10px; border: 1px solid #333; display: none; margin-bottom: 20px; }
-    .btn-voltar { background: #444; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
-    .btn-finalizar { background: #f57c00; color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; margin-top: 20px; }
+    .btn-voltar { background: #444; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin: 5px; }
+    .btn-finalizar { background: #f57c00; color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; margin-top: 20px; display: none; }
     
     #loading { margin: 50px; font-style: italic; color: #888; }
+    #contagem { color: #4caf50; font-weight: bold; font-size: 18px; margin-top: 10px; display: block; }
   </style>
 </head>
 <body>
@@ -42,8 +43,10 @@
       <h2 id="profAtivo" style="color: #4caf50; margin: 0;"></h2>
       <p id="pedidoID" style="color: #888;"></p>
       <div id="feedback" style="font-size: 1.2em; margin: 15px 0; min-height: 1.5em;">Aguardando leitura do QR Code...</div>
+      <span id="contagem"></span>
+      <br>
       <button class="btn-voltar" onclick="fecharScanner()">⬅ Mudar Pedido</button>
-      <button class="btn-finalizar" onclick="finalizar()">✅ Finalizar Entrega</button>
+      <button class="btn-finalizar" id="btnFinalizar" onclick="finalizar()">✅ Finalizar Entrega</button>
     </div>
     <div id="reader"></div>
   </div>
@@ -52,9 +55,9 @@
   <script>
     const BASE_URL = "https://script.google.com/macros/s/AKfycbwy2JvVfE1vZ_Tp2LAEfsSoOlgzgCCCKotsVTUOWY6CFPloFrgvt_mpQ8VVQoeqN0QF/exec";
     let idPedidoAtual = "";
+    let itensBipados = []; // AQUI ESTÁ A MÁGICA: A lista que guarda os bips temporariamente
     const scanner = new Html5Qrcode("reader");
 
-    // Carregar pedidos ao abrir a página
     window.onload = carregarPedidos;
 
     function carregarPedidos() {
@@ -73,7 +76,6 @@
           data.forEach(p => {
             const card = document.createElement('div');
             card.className = 'card';
-            // Se já tiver algo bipado, o card ganha uma borda sutil
             if (p.bipados) card.style.borderLeft = "5px solid #2e7d32";
 
             card.innerHTML = `
@@ -93,36 +95,65 @@
 
     function iniciarScan(id, professor) {
       idPedidoAtual = id;
+      itensBipados = []; // Limpa a lista sempre que abre um novo pedido
+      
       document.getElementById('view-lista').style.display = 'none';
       document.getElementById('view-scanner').style.display = 'block';
       document.getElementById('reader').style.display = 'block';
       document.getElementById('profAtivo').innerText = "Prof. " + professor;
       document.getElementById('pedidoID').innerText = "ID: " + id;
+      document.getElementById('contagem').innerText = "";
+      document.getElementById('btnFinalizar').style.display = 'none';
       
       const config = { fps: 10, qrbox: 250 };
       scanner.start({ facingMode: "environment" }, config, qrCodeMessage => {
+        const idLido = qrCodeMessage.trim();
+        
+        // Evita bipar o mesmo aparelho duas vezes
+        if (itensBipados.includes(idLido)) return;
+        
         scanner.pause();
-        const url = `${BASE_URL}?id=${qrCodeMessage.trim()}&idPedido=${idPedidoAtual}&acao=reservar`;
+        
+        // MUDANÇA: Usa a rota verificar_item (não altera a planilha ainda)
+        const url = `${BASE_URL}?id=${idLido}&acao=verificar_item`;
         
         fetch(url)
           .then(res => res.text())
           .then(msg => {
-            document.getElementById('feedback').innerText = msg;
-            if (msg.toLowerCase().includes("erro")) alert(msg);
-            setTimeout(() => { scanner.resume(); }, 1000);
+            if (msg.startsWith("OK:")) {
+              itensBipados.push(idLido);
+              document.getElementById('feedback').innerText = "✅ " + msg.split(":")[1] + " separado!";
+              document.getElementById('contagem').innerText = "Chromebooks lidos: " + itensBipados.length;
+              document.getElementById('btnFinalizar').style.display = 'inline-block';
+            } else {
+              document.getElementById('feedback').innerText = "❌ Erro no item!";
+              alert(msg);
+            }
+            setTimeout(() => { scanner.resume(); }, 800);
+          })
+          .catch(err => {
+            alert("Erro na conexão: " + err);
+            scanner.resume();
           });
       });
     }
 
     function fecharScanner() {
       scanner.stop().then(() => {
-        location.reload(); // Recarrega para atualizar a lista
+        location.reload(); 
       });
     }
 
     function finalizar() {
-      if (!confirm("Confirmar a entrega final para este professor?")) return;
-      const url = `${BASE_URL}?idPedido=${idPedidoAtual}&acao=finalizar`;
+      if (itensBipados.length === 0) {
+        return alert("Você precisa ler pelo menos um QR Code antes de finalizar!");
+      }
+
+      if (!confirm("Confirmar a entrega de " + itensBipados.length + " itens para o professor?")) return;
+      
+      // MUDANÇA: Envia a lista toda de uma vez para vincular_em_massa
+      const url = `${BASE_URL}?idPedido=${idPedidoAtual}&listaIds=${itensBipados.join(",")}&acao=vincular_em_massa`;
+      
       fetch(url).then(res => res.text()).then(msg => {
         alert(msg);
         location.reload();
