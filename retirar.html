@@ -40,7 +40,9 @@
   <script>
     let idPedidoAtual = "";
     const scanner = new Html5Qrcode("reader");
-    const BASE_URL = "https://script.google.com/macros/s/AKfycbz967e-L2uiRRXE8E7XyGrQih1K3MFEQ5WNUzVIrNwCrn7QzYGcFHWYVSZ6KPwyd6gF/exec";
+    
+    // AQUI ESTÁ A MUDANÇA: Usando o link que deu certo no seu teste!
+    const BASE_URL = "https://script.google.com/macros/s/AKfycbwy2JvVfE1vZ_Tp2LAEfsSoOlgzgCCCKotsVTUOWY6CFPloFrgvt_mpQ8VVQoeqN0QF/exec";
 
     function voltar() { window.location.href = "index.html"; }
 
@@ -58,21 +60,34 @@
     }
 
     function startScanner() {
-      scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, qrCodeMessage => {
+      // Configuração de scanner mais estável
+      const config = { fps: 10, qrbox: 250 };
+      
+      scanner.start({ facingMode: "environment" }, config, qrCodeMessage => {
         scanner.pause();
-        const url = `${BASE_URL}?id=${qrCodeMessage}&idPedido=${idPedidoAtual}&acao=reservar`;
         
-        fetch(url).then(res => res.text()).then(msg => {
-          document.getElementById('feedback').innerText = "Último: " + msg;
-          scanner.resume();
-        });
+        // Monta a URL exatamente como o link de teste que deu certo
+        const url = `${BASE_URL}?id=${qrCodeMessage.trim()}&idPedido=${idPedidoAtual}&acao=reservar`;
+        
+        fetch(url)
+          .then(res => res.text())
+          .then(msg => {
+            document.getElementById('feedback').innerText = "Resultado: " + msg;
+            // Se der erro, o alert ajuda a ver o que houve na hora
+            if (msg.toLowerCase().includes("erro")) alert(msg);
+            scanner.resume();
+          })
+          .catch(err => {
+            alert("Erro na conexão: " + err);
+            scanner.resume();
+          });
       });
     }
 
     function finalizar() {
-      if (!confirm("Confirmar entrega de todos os itens reservados?")) return;
+      if (!confirm("Confirmar entrega de todos os itens reservados para o pedido " + idPedidoAtual + "?")) return;
       
-      const url = `${BASE_URL}?idPedido=${idPedidoAtual}&acao=finalizar&id=N_A`; // id=N_A apenas para não dar erro de parâmetro
+      const url = `${BASE_URL}?idPedido=${idPedidoAtual}&acao=finalizar`;
       
       fetch(url).then(res => res.text()).then(msg => {
         alert(msg);
