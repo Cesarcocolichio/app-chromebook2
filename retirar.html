@@ -83,7 +83,6 @@
               <p><b>Quantidade solicitada:</b> ${p.quantidade} unidades</p>
               <p><b>Data/Hora:</b> ${p.horarioPedido}</p>
             `;
-            // Passa a quantidade para a função de scan
             card.onclick = () => iniciarScan(p.id, p.professor, p.quantidade);
             container.appendChild(card);
           });
@@ -111,10 +110,8 @@
       scanner.start({ facingMode: "environment" }, config, qrCodeMessage => {
         const idLido = qrCodeMessage.trim();
         
-        // Bloqueio se já bipou o mesmo item
         if (itensBipados.includes(idLido)) return;
 
-        // TRAVA DE SEGURANÇA: Não deixa passar da quantidade
         if (itensBipados.length >= qtdSolicitada) {
           document.getElementById('feedback').innerText = "⚠️ Limite de " + qtdSolicitada + " já atingido!";
           return;
@@ -136,7 +133,6 @@
               alert(msg);
             }
             
-            // Só resume o scanner se ainda houver espaço na lista
             if (itensBipados.length < qtdSolicitada) {
                 setTimeout(() => { scanner.resume(); }, 800);
             } else {
@@ -157,10 +153,21 @@
         el.classList.remove('limite-atingido');
     }
 
+    // 🔧 ALTERAÇÃO AQUI
     function fecharScanner() {
-      scanner.stop().then(() => {
-        location.reload(); 
-      });
+
+      fetch(`${BASE_URL}?acao=cancelar_reservas`)
+        .then(() => {
+          scanner.stop().then(() => {
+            location.reload();
+          });
+        })
+        .catch(() => {
+          scanner.stop().then(() => {
+            location.reload();
+          });
+        });
+
     }
 
     function finalizar() {
