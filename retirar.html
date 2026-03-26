@@ -6,167 +6,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-
-body{
-text-align:center;
-background:#111;
-color:white;
-font-family:sans-serif;
-margin:0;
-padding:20px;
-}
-
-.container-cards{
-display:flex;
-flex-direction:column;
-gap:15px;
-align-items:center;
-margin-top:20px;
-}
-
-.card{
-background:#222;
-border:1px solid #444;
-padding:20px;
-width:90%;
-max-width:450px;
-border-radius:12px;
-cursor:pointer;
-text-align:left;
-transition:0.3s;
-}
-
-.card:hover{
-border-color:#2e7d32;
-transform:translateY(-2px);
-background:#2a2a2a;
-}
-
-.card h3{
-margin:0 0 8px 0;
-color:#4caf50;
-display:flex;
-justify-content:space-between;
-}
-
-.card p{
-margin:4px 0;
-font-size:14px;
-color:#bbb;
-}
-
-.badge{
-background:#2e7d32;
-color:white;
-padding:4px 8px;
-border-radius:5px;
-font-size:12px;
-}
-
-#reader{
-width:100%;
-max-width:500px;
-margin:20px auto;
-display:none;
-}
-
-.status-box{
-background:#1a1a1a;
-padding:20px;
-border-radius:10px;
-border:1px solid #333;
-margin-bottom:20px;
-}
-
-.btn-voltar{
-background:#444;
-color:white;
-padding:12px 20px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-font-size:16px;
-margin:5px;
-}
-
-.btn-finalizar{
-background:#f57c00;
-color:white;
-padding:15px 30px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-size:18px;
-margin-top:20px;
-display:none;
-}
-
-#contagem{
-color:#4caf50;
-font-weight:bold;
-font-size:22px;
-margin-top:10px;
-display:block;
-}
-
-.lista-chromes{
-margin-top:15px;
-text-align:left;
-max-height:150px;
-overflow:auto;
-border-top:1px solid #333;
-padding-top:10px;
-}
-
-.item{
-padding:4px 0;
-font-size:14px;
-color:#ddd;
-}
-
-.limite{
-color:#f44336;
-font-weight:bold;
-margin-top:10px;
-}
-
-.popup{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.8);
-display:none;
-align-items:center;
-justify-content:center;
-}
-
-.popup-box{
-background:#222;
-padding:30px;
-border-radius:10px;
-max-width:350px;
-}
-
-.popup button{
-margin:10px;
-padding:10px 20px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-}
-
-.sim{
-background:#4caf50;
-color:white;
-}
-
-.nao{
-background:#f44336;
-color:white;
-}
-
+body{ text-align:center; background:#111; color:white; font-family:sans-serif; margin:0; padding:20px; }
+.container-cards{ display:flex; flex-direction:column; gap:15px; align-items:center; margin-top:20px; }
+.card{ background:#222; border:1px solid #444; padding:20px; width:90%; max-width:450px; border-radius:12px; cursor:pointer; text-align:left; transition:0.3s; }
+.card:hover{ border-color:#2e7d32; transform:translateY(-2px); background:#2a2a2a; }
+.card h3{ margin:0 0 8px 0; color:#4caf50; display:flex; justify-content:space-between; }
+.card p{ margin:4px 0; font-size:14px; color:#bbb; }
+.badge{ background:#2e7d32; color:white; padding:4px 8px; border-radius:5px; font-size:12px; }
+#reader{ width:100%; max-width:500px; margin:20px auto; display:none; }
+.status-box{ background:#1a1a1a; padding:20px; border-radius:10px; border:1px solid #333; margin-bottom:20px; }
+.btn-voltar{ background:#444; color:white; padding:12px 20px; border:none; border-radius:6px; cursor:pointer; font-size:16px; margin:5px; }
+.btn-finalizar{ background:#f57c00; color:white; padding:15px 30px; border:none; border-radius:8px; cursor:pointer; font-size:18px; margin-top:20px; display:none; }
+#contagem{ color:#4caf50; font-weight:bold; font-size:22px; margin-top:10px; display:block; }
+.lista-chromes{ margin-top:15px; text-align:left; max-height:150px; overflow:auto; border-top:1px solid #333; padding-top:10px; }
+.item{ padding:4px 0; font-size:14px; color:#ddd; }
+.limite{ color:#f44336; font-weight:bold; margin-top:10px; }
+.popup{ position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; }
+.popup-box{ background:#222; padding:30px; border-radius:10px; max-width:350px; }
+.popup button{ margin:10px; padding:10px 20px; border:none; border-radius:6px; cursor:pointer; }
+.sim{ background:#4caf50; color:white; }
+.nao{ background:#f44336; color:white; }
 </style>
 </head>
 
@@ -175,270 +34,159 @@ color:white;
 <h1>📤 Pedidos Pendentes</h1>
 
 <div id="view-lista">
-
-<button class="btn-voltar" onclick="window.location.href='index.html'">⬅ Voltar</button>
-
-<div id="loading">Buscando pedidos...</div>
-
-<div id="container-pedidos" class="container-cards"></div>
-
+  <button class="btn-voltar" onclick="window.location.href='index.html'">⬅ Voltar</button>
+  <div id="loading">Buscando pedidos...</div>
+  <div id="container-pedidos" class="container-cards"></div>
 </div>
-
 
 <div id="view-scanner" style="display:none">
-
-<div class="status-box">
-
-<h2 id="profAtivo"></h2>
-<p id="pedidoID"></p>
-
-<div id="feedback">Aguardando leitura do QR Code...</div>
-
-<span id="contagem">0 / 0</span>
-
-<div class="lista-chromes" id="listaChromes"></div>
-
-<button class="btn-voltar" onclick="fecharScanner()">⬅ Mudar Pedido</button>
-
-<button class="btn-finalizar" id="btnFinalizar" onclick="finalizar()">✅ Finalizar Entrega</button>
-
+  <div class="status-box">
+    <h2 id="profAtivo"></h2>
+    <p id="pedidoID"></p>
+    <div id="feedback">Aguardando leitura do QR Code...</div>
+    <span id="contagem">0 / 0</span>
+    <div class="lista-chromes" id="listaChromes"></div>
+    <button class="btn-voltar" onclick="fecharScanner()">⬅ Mudar Pedido</button>
+    <button class="btn-finalizar" id="btnFinalizar" onclick="finalizar()">✅ Finalizar Separação</button>
+  </div>
+  <div id="reader"></div>
 </div>
-
-<div id="reader"></div>
-
-</div>
-
 
 <div class="popup" id="popupLimite">
-
-<div class="popup-box">
-
-<h3>Pedido já está completo</h3>
-
-<p>Deseja adicionar mais um Chromebook?</p>
-
-<button class="sim" onclick="confirmarExtra()">Sim</button>
-<button class="nao" onclick="fecharPopup()">Não</button>
-
+  <div class="popup-box">
+    <h3>Pedido já está completo</h3>
+    <p>Deseja adicionar mais um Chromebook?</p>
+    <button class="sim" onclick="confirmarExtra()">Sim</button>
+    <button class="nao" onclick="fecharPopup()">Não</button>
+  </div>
 </div>
-
-</div>
-
-
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
-
 const BASE_URL="https://script.google.com/macros/s/AKfycbwy2JvVfE1vZ_Tp2LAEfsSoOlgzgCCCKotsVTUOWY6CFPloFrgvt_mpQ8VVQoeqN0QF/exec";
 
 let idPedidoAtual="";
 let qtdSolicitada=0;
 let itensBipados=[];
 let ultimoScan="";
-
 const scanner=new Html5Qrcode("reader");
 
 window.onload=carregarPedidos;
 
-
-
 function carregarPedidos(){
+  fetch(`${BASE_URL}?acao=listar_pedidos`)
+  .then(res=>res.json())
+  .then(data=>{
+    document.getElementById("loading").style.display="none";
+    const container=document.getElementById("container-pedidos");
+    container.innerHTML="";
 
-fetch(`${BASE_URL}?acao=listar_pedidos`)
-.then(res=>res.json())
-.then(data=>{
+    // AQUI ESTÁ O SEGREDO: Só mostra pedidos que NÃO foram separados ainda
+    const pendentes = data.filter(p => p.status !== "Separado");
 
-document.getElementById("loading").style.display="none";
+    if(pendentes.length === 0) {
+      container.innerHTML = "<p>Nenhum pedido pendente para separação.</p>";
+      return;
+    }
 
-const container=document.getElementById("container-pedidos");
-
-container.innerHTML="";
-
-data.forEach(p=>{
-
-const card=document.createElement("div");
-
-card.className="card";
-
-card.innerHTML=`
-<h3>${p.professor} <span class="badge">${p.id}</span></h3>
-<p>Quantidade: ${p.quantidade}</p>
-<p>${p.horarioPedido}</p>
-`;
-
-card.onclick=()=>iniciarScan(p.id,p.professor,p.quantidade);
-
-container.appendChild(card);
-
-});
-
-});
-
+    pendentes.forEach(p=>{
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`
+      <h3>${p.professor} <span class="badge">${p.id}</span></h3>
+      <p>Quantidade: ${p.quantidade}</p>
+      <p>${p.horarioPedido}</p>
+      `;
+      card.onclick=()=>iniciarScan(p.id,p.professor,p.quantidade);
+      container.appendChild(card);
+    });
+  });
 }
-
-
 
 function iniciarScan(id,professor,qtd){
+  idPedidoAtual=id;
+  qtdSolicitada=parseInt(qtd);
+  itensBipados=[];
+  document.getElementById("view-lista").style.display="none";
+  document.getElementById("view-scanner").style.display="block";
+  document.getElementById("reader").style.display="block";
+  document.getElementById("profAtivo").innerText="Prof. "+professor;
+  document.getElementById("pedidoID").innerText="ID: "+id;
+  document.getElementById("listaChromes").innerHTML="";
+  atualizarContador();
 
-idPedidoAtual=id;
-
-qtdSolicitada=parseInt(qtd);
-
-itensBipados=[];
-
-document.getElementById("view-lista").style.display="none";
-
-document.getElementById("view-scanner").style.display="block";
-
-document.getElementById("reader").style.display="block";
-
-document.getElementById("profAtivo").innerText="Prof. "+professor;
-
-document.getElementById("pedidoID").innerText="ID: "+id;
-
-document.getElementById("listaChromes").innerHTML="";
-
-atualizarContador();
-
-
-
-scanner.start(
-{facingMode:"environment"},
-{fps:10,qrbox:250},
-qrCodeMessage=>processarScan(qrCodeMessage.trim())
-);
-
+  scanner.start(
+    {facingMode:"environment"},
+    {fps:10,qrbox:250},
+    qrCodeMessage=>processarScan(qrCodeMessage.trim())
+  );
 }
-
-
 
 function processarScan(idLido){
-
-if(itensBipados.includes(idLido)) return;
-
-ultimoScan=idLido;
-
-if(itensBipados.length>=qtdSolicitada){
-
-document.getElementById("popupLimite").style.display="flex";
-
-return;
-
+  if(itensBipados.includes(idLido)) return;
+  ultimoScan=idLido;
+  if(itensBipados.length>=qtdSolicitada){
+    document.getElementById("popupLimite").style.display="flex";
+    return;
+  }
+  registrarItem(idLido);
 }
-
-registrarItem(idLido);
-
-}
-
-
 
 function confirmarExtra(){
-
-fecharPopup();
-
-registrarItem(ultimoScan);
-
+  fecharPopup();
+  registrarItem(ultimoScan);
 }
-
-
 
 function fecharPopup(){
-
-document.getElementById("popupLimite").style.display="none";
-
+  document.getElementById("popupLimite").style.display="none";
 }
-
-
 
 function registrarItem(idLido){
-
-scanner.pause();
-
-fetch(`${BASE_URL}?id=${idLido}&acao=verificar_item`)
-.then(res=>res.text())
-.then(msg=>{
-
-if(msg.startsWith("OK:")){
-
-const nome=msg.split(":")[1];
-
-itensBipados.push(idLido);
-
-document.getElementById("feedback").innerText="✅ "+nome+" separado";
-
-const el=document.createElement("div");
-
-el.className="item";
-
-el.innerText="✔ "+nome;
-
-document.getElementById("listaChromes").appendChild(el);
-
-atualizarContador();
-
-document.getElementById("btnFinalizar").style.display="inline-block";
-
-}else{
-
-alert(msg);
-
+  scanner.pause();
+  fetch(`${BASE_URL}?id=${idLido}&acao=verificar_item`)
+  .then(res=>res.text())
+  .then(msg=>{
+    if(msg.startsWith("OK:")){
+      const nome=msg.split(":")[1];
+      itensBipados.push(idLido);
+      document.getElementById("feedback").innerText="✅ "+nome+" separado";
+      const el=document.createElement("div");
+      el.className="item";
+      el.innerText="✔ "+nome;
+      document.getElementById("listaChromes").appendChild(el);
+      atualizarContador();
+      document.getElementById("btnFinalizar").style.display="inline-block";
+    }else{
+      alert(msg);
+    }
+    setTimeout(()=>scanner.resume(),500);
+  });
 }
-
-setTimeout(()=>scanner.resume(),500);
-
-});
-
-}
-
-
 
 function atualizarContador(){
-
-document.getElementById("contagem").innerText=
-itensBipados.length+" / "+qtdSolicitada;
-
+  document.getElementById("contagem").innerText=itensBipados.length+" / "+qtdSolicitada;
 }
-
-
 
 function fecharScanner(){
-
-  try{
-    scanner.stop();
-  }catch(e){}
-
+  try{ scanner.stop(); }catch(e){}
   navigator.sendBeacon(BASE_URL + "?acao=cancelar_reservas");
-
   location.reload();
-
 }
-
-
 
 function finalizar(){
-
-if(!confirm("Confirmar entrega?")) return;
-
-fetch(`${BASE_URL}?idPedido=${idPedidoAtual}&listaIds=${itensBipados.join(",")}&acao=vincular_em_massa`)
-.then(res=>res.text())
-.then(msg=>{
-
-alert(msg);
-
-location.reload();
-
-});
-
+  if(!confirm("Concluir separação? O pedido irá para a lista de entrega.")) return;
+  fetch(`${BASE_URL}?idPedido=${idPedidoAtual}&listaIds=${itensBipados.join(",")}&acao=vincular_em_massa`)
+  .then(res=>res.text())
+  .then(msg=>{
+    alert(msg);
+    location.reload();
+  });
 }
 
-
-
 window.addEventListener("beforeunload",()=>{
-navigator.sendBeacon(`${BASE_URL}?acao=cancelar_reservas`);
+  navigator.sendBeacon(`${BASE_URL}?acao=cancelar_reservas`);
 });
-
 </script>
-
 </body>
 </html>
