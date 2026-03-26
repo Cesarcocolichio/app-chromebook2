@@ -1,61 +1,127 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>📥 Devolver</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { text-align: center; background: #111; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
-    #reader { width: 100%; max-width: 500px; margin: 20px auto; border-radius: 8px; }
-    button { font-size: 20px; padding: 15px 25px; margin: 10px; cursor: pointer; border-radius: 5px; border: none; }
-    .btn-voltar { background: #444; color: white; }
-  </style>
+<meta charset="UTF-8">
+<title>📥 Devolver</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  text-align:center;
+  background:#111;
+  color:white;
+  font-family:sans-serif;
+  margin:0;
+  padding:20px;
+}
+
+#reader{
+  width:100%;
+  max-width:500px;
+  margin:20px auto;
+  border-radius:8px;
+}
+
+button{
+  font-size:20px;
+  padding:15px 25px;
+  margin:10px;
+  cursor:pointer;
+  border-radius:5px;
+  border:none;
+}
+
+.btn-voltar{
+  background:#444;
+  color:white;
+}
+</style>
 </head>
+
 <body>
 
-  <h1>📥 Devolver</h1>
-  <button class="btn-voltar" onclick="voltar()">⬅ Voltar</button>
+<h1>📥 Devolver</h1>
 
-  <div id="reader"></div>
+<button class="btn-voltar" onclick="voltar()">⬅ Voltar</button>
 
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <script>
-    function voltar() { window.location.href = "index.html"; }
+<div id="reader"></div>
 
-    const scanner = new Html5Qrcode("reader");
-    const qrboxSize = Math.min(window.innerWidth * 0.7, 300);
+<script src="https://unpkg.com/html5-qrcode"></script>
 
-    const config = { 
-      fps: 10, 
-      qrbox: { width: qrboxSize, height: qrboxSize },
-      aspectRatio: 1.0
-    };
+<script>
 
-    scanner.start(
-      { facingMode: "environment" }, 
-      config,
-      qrCodeMessage => {
-        // IMPORTANTE: Atualize o link abaixo com o seu novo ID de implantação
-        const url = `https://script.google.com/macros/s/AKfycbz967e-L2uiRRXE8E7XyGrQih1K3MFEQ5WNUzVIrNwCrn7QzYGcFHWYVSZ6KPwyd6gF/exec?id=${qrCodeMessage}&acao=devolver`;
-        
-        scanner.stop().then(() => {
-          fetch(url)
-            .then(res => res.text())
-            .then(msg => {
-              alert(msg);
-              location.reload();
-            });
-        });
-      }
-    ).catch(err => {
-      console.error(err);
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-          scanner.start(devices[devices.length - 1].id, config, msg => alert(msg));
-        }
+function voltar(){
+  window.location.href = "index.html";
+}
+
+const API = "https://script.google.com/macros/s/AKfycbwy2JvVfE1vZ_Tp2LAEfsSoOlgzgCCCKotsVTUOWY6CFPloFrgvt_mpQ8VVQoeqN0QF/exec";
+
+const scanner = new Html5Qrcode("reader");
+
+const qrboxSize = Math.min(window.innerWidth * 0.7, 300);
+
+const config = {
+  fps:10,
+  qrbox:{width:qrboxSize,height:qrboxSize},
+  aspectRatio:1.0
+};
+
+let lendo = false;
+
+scanner.start(
+  { facingMode:"environment" },
+  config,
+
+  qrCodeMessage => {
+
+    if(lendo) return;
+    lendo = true;
+
+    const url = `${API}?acao=devolver&id=${qrCodeMessage}`;
+
+    console.log("QR lido:", qrCodeMessage);
+    console.log("URL chamada:", url);
+
+    scanner.stop().then(()=>{
+
+      fetch(url)
+      .then(res=>res.text())
+      .then(msg=>{
+
+        alert(msg);
+
+        setTimeout(()=>{
+          location.reload();
+        },500);
+
+      })
+      .catch(err=>{
+        alert("Erro ao conectar com o servidor");
+        console.error(err);
+        lendo=false;
       });
+
     });
-  </script>
+
+  }
+
+).catch(err=>{
+
+  console.error("Erro ao iniciar câmera:",err);
+
+  Html5Qrcode.getCameras().then(devices=>{
+    if(devices && devices.length){
+      scanner.start(
+        devices[devices.length-1].id,
+        config,
+        msg=>alert(msg)
+      );
+    }
+  });
+
+});
+
+</script>
 
 </body>
 </html>
