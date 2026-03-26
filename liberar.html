@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>🚚 Entregar ao Professor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { text-align: center; background: #111; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
+    .container-cards { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-top: 20px; }
+    .card { background: #222; border: 2px solid #f57c00; padding: 20px; width: 90%; max-width: 450px; border-radius: 12px; text-align: left; }
+    .card h3 { margin: 0 0 8px 0; color: #f57c00; }
+    .card p { margin: 4px 0; font-size: 14px; color: #bbb; }
+    .btn-liberar { background: #2e7d32; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; margin-top: 15px; font-size: 18px; font-weight: bold; cursor: pointer; }
+    .btn-voltar { background: #444; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 20px; }
+    #loading { margin-top: 50px; color: #888; }
+  </style>
+</head>
+<body>
+
+  <h1>🚚 Entregar ao Professor</h1>
+  <button class="btn-voltar" onclick="window.location.href='index.html'">⬅ Voltar</button>
+
+  <div id="loading">Buscando carrinhos prontos...</div>
+  <div id="container-pedidos" class="container-cards"></div>
+
+  <script>
+    const BASE_URL = "SUA_URL_DO_SCRIPT_AQUI"; // Atualize aqui!
+
+    window.onload = function() {
+      fetch(`${BASE_URL}?acao=listar_pedidos`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("loading").style.display = "none";
+        const container = document.getElementById("container-pedidos");
+        
+        // Filtra apenas os pedidos que estão com status "Separado"
+        const separados = data.filter(p => p.status === "Separado");
+
+        if(separados.length === 0) {
+          container.innerHTML = "<p>Nenhum carrinho aguardando retirada.</p>";
+          return;
+        }
+
+        separados.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h3>${p.professor}</h3>
+            <p><strong>ID:</strong> ${p.id}</p>
+            <p><strong>Itens:</strong> ${p.quantidade}</p>
+            <button class="btn-liberar" onclick="confirmarEntrega('${p.id}')">ENTREGAR AGORA ✅</button>
+          `;
+          container.appendChild(card);
+        });
+      });
+    };
+
+    function confirmarEntrega(idPedido) {
+      if(!confirm("Confirmar que o professor está levando o carrinho?")) return;
+
+      fetch(`${BASE_URL}?idPedido=${idPedido}&acao=liberar_pedido`)
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+        location.reload();
+      });
+    }
+  </script>
+</body>
+</html>

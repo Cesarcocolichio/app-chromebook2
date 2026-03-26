@@ -19,21 +19,27 @@
       display: block; 
       margin-left: auto; 
       margin-right: auto;
+      font-weight: bold;
     }
-    .btn-retirar { background: #2e7d32; color: white; }
-    .btn-devolver { background: #1565c0; color: white; }
+    .btn-retirar { background: #2e7d32; color: white; } /* Verde */
+    .btn-entregar { background: #f57c00; color: white; } /* Laranja */
+    .btn-devolver { background: #1565c0; color: white; } /* Azul */
   </style>
 </head>
 <body>
 
-  <h1>📦 Controle</h1>
+  <h1>📦 Controle de Chromebooks</h1>
 
   <button class="btn-main btn-retirar" onclick="ir('retirar.html')">
-    📤 Retirar / Reservar
+    📤 1. Separar Itens
+  </button>
+
+  <button class="btn-main btn-entregar" onclick="ir('liberar.html')">
+    🚚 2. Entregar ao Prof
   </button>
 
   <button class="btn-main btn-devolver" onclick="ir('devolver.html')">
-    📥 Devolver
+    📥 3. Devolver
   </button>
 
   <script>
